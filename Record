@@ -1,0 +1,160 @@
+#build the whole project with the default config 
+sudo ./estuary/build.sh --file=./estuary/estuarycfg.json --builddir=./workspace
+
+# Board Manager
+startdocker
+board_list
+board_connect
+
+### scp
+拷贝fd到107： scp Build/D05/RELEASE_GCC49/FV/D05.fd huangming@192.168.1.107:/home/huangming/tftp/D05-it12.fd
+scp  huangming@192.168.1.106:~/source/plinth/Build/D05/DEBUG_GCC49/FV/D05.fd /home/huangming/tftp/
+scp -P 221 -r hensonwang@htsat.vicp.cc:/home/hensonwang/open-estuary/estuary ./
+scp -P 222 -r Build/D03/DEBUG_GCC49/FV/D03.fd huangming@htsat.vicp.cc:~/tftp/
+
+#拷贝单板上的文件：
+ifconfig eth0 192.168.1.229
+scp root@192.168.1.229:/sys/firmware/acpi/tables/IORT /home/huangming/tmp/dynamic-smmu/iort-n-n
+
+### Build
+-m XXX.inf #可以只编译模块
+uefi-tools/uefi-build.sh -c LinaroPkg/platforms.config d05
+./uefi-tools/edk2-build.sh d03 -D FIRMWARE_VER=rp-1710-v4 --no-openssl
+
+clang:
+apt install clang-3.8
+ln -s /usr/bin/clang-cl-3.8 clang
+CLANG38_AARCH64_PREFIX=aarch64-linux-gnu-
+./uefi-tools/edk2-build.sh -T clang d05 --no-openssl
+
+###### D06 shell Capsule update #####
+ifconfig -s eth2 static 192.168.1.23 255.255.255.0 192.168.1.1
+provision 192.168.1.107 -u huangming -p afljklxj -f tftp/CapsuleApp.efi -a 100000
+mdfile Capsule.efi 0x100000 0x8120
+provision 192.168.1.107 -u huangming -p afljklxj -f D06.cap -a 100000
+mdfile D06.cap 0x100000 0x46224D
+Capsule.efi D06.cap
+###### D06 shell update #####
+ifconfig -s eth6 static 192.168.1.23 255.255.255.0 192.168.1.1
+ifconfig -s eth2 static 192.168.1.23 255.255.255.0 192.168.1.1
+biosupdate 192.168.1.107 -u huangming -p afljklxj -f tftp/D06.fd -m master
+
+#acpistartos example:
+ifconfig -s eth2 static 192.168.2.69 255.255.255.0 192.168.2.1
+provision serverIp -u huangming -p afljklxj -f tftp/Image -a 0x80000
+2
+provision serverIp -u huangming -p afljklxj -f tftp/minifs.cpio.gz -a 0x07000000
+2
+acpistartos
+###### D06 EBL update #####
+ifconfig -s eth2 192.168.1.22 255.255.255.0 192.168.1.1
+provision 192.168.1.107 -u huangming -p afljklxj -f tftp/D06.fd -a 100000
+3
+sfcerasewrite 0x06000000 0x100000 0x400000
+reset
+
+### update D05 bios
+ifconfig -s eth2 192.168.1.22 255.255.255.0 192.168.1.1
+provision 192.168.1.107 -u huangming -p afljklxj -f tftp/D05.fd -a 100000
+3
+spiwfmem 100000 0 300000
+reset
+# D03 - old
+ifconfig -s eth2 192.168.1.22 255.255.255.0 192.168.1.1
+provision 192.168.1.107 -u huangming -p afljklxj -f tftp/D03.fd -a 100000
+3
+spiwfmem 100000 0 300000
+reset
+
+###### shell update #####
+ifconfig -s eth0 static 192.168.1.22 255.255.255.0 192.168.1.1
+provision 192.168.1.107 -u huangming -p afljklxj -f tftp/D05.fd -a 100000
+3
+spiwfmem 100000 0 300000
+reset
+
+### Capsule update
+sudo fwupdate -a d34b3d29-0085-4ab3-8be8-84188cc50489 Capsule-d05.Cap
+
+provision 192.168.1.107 -u huangming -p afljklxj -f tftp/D03.fd -a 100000
+provision 192.168.1.107 -u hensonwang -p 123456 -f tftp/D05/UEFI_D05_20161026.fd -a 100000
+
+### shell
+fs0:
+\EFI\centos\grubaa64.efi
+efi\grub2\grubaa64.efi
+
+### Lab
+ssh <user>@htsat.vicp.cc -p 221
+114.119.4.74    124.250.134.52
+
+VNC viewer
+VNC:114.119.4.74:5908/5901 plinth pw:sailing, BMC:192.168.2.*, cmd:firefox
+Lab1 VNC:htsat.vicp.cc:5901 estuary、5908 chenzhihui
+
+### plinth
+kernel：git clone https://github.com/hisilicon/kernel-dev.git
+binary git：git clone https://github.com/hisilicon/plinth-uefi/
+git clone --recursive https://github.com/hisilicon/UEFI.git plinth
+https://github.com/hisilicon/OpenPlatformPkg.git
+https://github.com/hisilicon/LinaroPkg.git
+https://git.linaro.org/uefi/uefi-tools.git
+
+### Linaro
+https://github.com/tianocore/edk2.git
+#https://git.linaro.org/uefi/linaro-edk2.git
+https://git.linaro.org/uefi/LinaroPkg.git
+https://git.linaro.org/uefi/OpenPlatformPkg.git
+https://git.linaro.org/uefi/uefi-tools.git
+# edk2-platforms
+https://github.com/tianocore/edk2-platforms
+https://github.com/tianocore/edk2-non-osi
+# commit vi 不保存退出:cq ((quit with an error code))
+
+git am  --whitespace=nowarn a.patch
+# git am
+$ git am a.patch
+$ git apply patch --reject
+$ edit edit edit
+（译注：根据.rej文件手动解决所有冲突）
+$ git add FIXED_FILES
+$ git am --resolved
+
+### git
+git config user.email "ming.huang@linaro.org"
+git config user.name "Ming Huang"
+git config --global user.name "Ming Huang"
+git config --local --unset user.email
+git config --local --unset user.name
+
+git config --global alias.unstage 'reset HEAD --'
+git config --global alias.ca 'commit --amend'
+git config --global alias.rb 'rebase --continue'
+git config --global alias.co 'checkout'
+git config --global alias.br 'branch -a'
+git config --global alias.s 'status'
+git config --global alias.al 'log --all --graph --date-order --pretty=format:"%h %ai %ci %d %s"'
+git config --global alias.bl 'log --graph --pretty=format:"%h %Cred%cn%Creset %Cgreen%ci%Creset %d %s"'
+git config --global alias.ml 'log --committer="huangming" --graph --pretty=format:"%h %Cred%cn%Creset %Cgreen%ci%Creset %d %s"'
+git config --global alias.fl 'log --pretty=fuller --name-only -1'
+git config --global alias.pl 'log --pretty=fuller -p -1'
+git commit --amend --author="Ming Huang <ming.huang@linaro.org>" 
+git commit --amend --author="Heyi Guo <heyi.guo@linaro.org>"
+git config --global sendemail.smtppass "yhgwibqglajfsodg"
+git config --global sendemail.smtppass "jidscnsivyptfvnj"  #ming.huang VPN CODE:EO2JQXGRVWQNOMMPGO7YZJI
+git rebase -i hash # edit/squash, fixup也可以合并（把2个path放在一起，期中一个修改为fixup另一个是pick）
+
+git format-patch --stat=1000 --stat-graph-width=20 --cover-letter --no-binary --subject-prefix="RFC MdeModulePkg/UefiBootManagerLib" -1 -v 1 -o v1
+
+git format-patch --stat=1000 --stat-graph-width=20 --cover-letter --no-binary --subject-prefix="PATCH edk2-platforms" -2 -v 1 -o v1
+git format-patch --stat=1000 --stat-graph-width=20 --cover-letter --no-binary --subject-prefix="PATCH edk2-non-osi" -2 -v 4 -o v4
+
+git format-patch --stat=1000 --stat-graph-width=20 --cover-letter --no-binary --subject-prefix="PATCH edk2/MdePkg" -1 -v 1 -o v1
+
+iconv -f UCS2 -t UTF-8 -o Platform/Hisilicon/D06/Library/OemMiscLibD06/BoardFeatureD06Strings.uni Platform/Hisilicon/D06/Library/OemMiscLibD06/BoardFeatureD06Strings.uni
+
+# Leif 提到的第9点要求 5也需要
+https://github.com/tianocorecn/tianocorecn.github.io/wiki/Laszlo's-unkempt-git-guide-for-edk2-contributors-and-maintainers
+
+
+
