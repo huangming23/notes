@@ -1,1 +1,326 @@
+# tmp txt
+UncachedMemoryAllocationLib
+DmaAllocateBuffer (EfiBootServicesData, EFI_SIZE_TO_PAGES (*NumberOfBytes), &Buffer);
+DmaFreeBuffer (Pages, HostAddress);
+EmbeddedPkg/EmbeddedPkg.dec
+--------------------------cover letter platforms----------------------------------
+Upload for D06 platform 
+
+The major features of this patchset include:
+1 D06 source code;
+2 Unify some D0x modules;
+
+Change since v4: 
+1  build on every commit:
+  Squash "Add PciPlatformLib" to "Add several base file for D06";
+  Reorder OemMiscLibD06 before "Add edk2-non-osi components for D06";
+  Move some mudules after "Add edk2-non-osi components for D06";
+  Move gOemConfigGuid to "Stop watchdog";
+2 Delete needless SnpDxe;
+3 Reorder "Unify HisiAcpiPlatformDxe";
+4 Modify Signed-off-by and add Reviewed-by;
+5 Modify other comments in v4;
+
+Code can also be found in github: https://github.com/hisilicon/OpenPlatformPkg.git
+branch: d06-platform-v5
+
+--------------------------cover letter osi----------------------------------
+Upload D06 binary modules
+
+This patch set include:
+1 Add D06 binary modules;
+2 Add PLATFORM_SAS_NOTIFY API.
+
+Change since v2:
+1 Add PLATFORM_SAS_NOTIFY API;
+2 Drop Oem Shell libraries;
+
+Code can also be found in github: https://github.com/hisilicon/OpenPlatformPkg.git
+branch: d06-non-osi-v4
+------------------------------------------------------------
+Contributed-under: TianoCore Contribution Agreement 1.1
+Signed-off-by: Ming Huang <ming.huang@linaro.org>
+Signed-off-by: Heyi Guo <heyi.guo@linaro.org>
+Signed-off-by: Jason Zhang <zhangjinsong2@huawei.com>
+
+Reviewed-by: Leif Lindholm <leif.lindholm@linaro.org>
+Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
+Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Reveiwed-by: Jeremy Linton <jeremy.linton@arm.com>
+
+#Linaro
+chase.qi@linaro.org
+
+#erp base test case:
+1 pxe boot;
+2 iso install to Sas/Sata and boot;
+3 capsule update(shell/ubuntu);
+4 KVM output
+
+# url
+ubuntu:
+  https://www.ubuntu.com/download/server
+curl -o ubuntu-18.04.1-server-arm64.iso https://mirrors.huaweicloud.com/ubuntu-cdimage/releases/18.04.1/release/ubuntu-18.04.1-server-arm64.iso
+孔新伟维护的2280版本：https://github.com/hisilicon/distro/blob/master/d05-fw/readme-d05#L59
+D06/D05 BMC/CPLD/BIOS: https://github.com/hisilicon/distro/tree/master/
+Leif: https://git.linaro.org/people/leif.lindholm/rpf.git
+debian #582: http://builds.96boards.org/snapshots/reference-platform/components/debian-installer-staging/582/
+Workarounds for CVE-2017-5715: https://github.com/ARM-software/arm-trusted-firmware/pull/1214/commits
+启动硬盘制作步骤：https://github.com/open-estuary/estuary/blob/estuary-d05-3.0b/doc/Deploy_Manual.4D05.md
+RP-17.12: http://releases.linaro.org/reference-platform/enterprise/17.12/uefi/release/
+          http://snapshots.linaro.org/reference-platform/enterprise/firmware/9/release/d05/
+RP-17.08: http://releases.linaro.org/reference-platform/enterprise/17.08
+RP-centos: https://builds.96boards.org/snapshots/reference-platform/components/centos-installer-staging/latest/
+myproject: git clone https://github.com/huangming23/file-transfer.git U=huangming23 P=fxltSbl23
+LanYun: https://cloud-szxbzg1.huaweiobz.com
+estuary binary(oversea): http://download.open-estuary.org/releasse/
+estuary binary(inland): ftp://117.78.41.188/releases/
+BMC升级包：https://github.com/hisilicon/distro/
+estuary问题单库：http://open-estuary.org/bugtracker/my_view_page.php  ming huang  fxltSbl23
+# 反汇编
+aarch64-linux-gnu-objdump -S -D -g
+# tianocore-docs
+
+#UEFI
+dead loop: asm ("b ."); while (1);
 edk2 specifications: https://github.com/tianocore/tianocore.github.io/wiki/EDK-II-Specifications
+
+#openlab
+lab2自动安装文件/opt/repo-liuxl/repos/debian8_preseed.cfg
+lab1自动安装文件/var/www/html/rp1612/debian8_preseed.cfg
+board info : /usr/local/openlab/openlab_conf/boardinfo.cfg
+grub build:https://github.com/open-estuary/estuary/blob/master/submodules/build-grub.sh
+
+### record
+遇到estuary仓库有问题，导致输入任何git命令都返回：init fatal: Could not chdir to ../../../LinaroPkg
+删除uefi目录，重新git clone 解决。
+
+#tmux a
+Ctrl+B #快捷键
+
+### debian
+dpkg -i fwupdate_10-2_arm64.deb
+
+### screen
+screen -S name
+screen -ls
+screen -r name
+exit
+
+### Linux
+plinth kernel编译: ./build.sh d06
+arch/arm64/configs/plinth-config
+#bmc vga (sm750):
++CONFIG_DRM=y
++CONFIG_DRM_HISI_HIBMC=y
+#HNS3:
++CONFIG_HNS3=y
++CONFIG_HNS3_HCLGE=y
++CONFIG_HNS3_ENET=y
+#SAS:
++CONFIG_SCSI_HISI_SAS_PCI=y
+
+echo 0 > /sys/devices/system/cpu/cpux/online/  #开关核
+cp -rp s d #保留时间戳、模式、所有权拷贝
+>&  #把标准输出和错误都重定向到文件
+reboot: echo b > /proc/sysrq-trigger
+lspci
+lspci -xxxx #access 4K pcie configuration space reg, -xxx access 256B reg
+lspci -s 11:00.0 -vvv #show pcie info, -v
+lsblk ; lsblk -f #可以显示UUID PARTUUID
+lsscsi
+fdisk -l
+看启动命令： cat /proc/cmdline
+单板用户信息 vi /usr/local/openlab/openlab_conf/userinfo.cfg
+dmesg :
+ dmesg|grep UEFI
+ dmesg|grep "command line"
+校验：cksum
+修改debian grub：vi /etc/default/grub   update-grub
+get iso grub: mkdir iso efi; mount -o loop mini.iso ./iso; mount efi.img efi
+D05是否EC前单板：devmem 0xD000E014
+
+#proxy
+设置http_proxy密码有特殊字符，用特殊字符的Unicode代替, @->%40
+
+#ubuntu root login in
+创建root用户的密码: sudo passwd root 
+/root/.profile将文件末尾的mesg n || true这一行修改成tty -s && mesg n || true
+
+### vi
+•xuwei .vimrc:
+https://github.com/joyxu/vim-config
+https://github.com/joyxu/docker-my-dev-env
+:%s/old/new/g  #全局替换
+• vi编辑二进制文件 vi -b file -> :%!xxd ->直接编辑 -> :%!xxd -r
+• vi 中转换格式: 
+  :w ++ff=dos/mac/unix  or :set ff=dos   
+   or   %s/\n/^M/g  (To input the ^M character, press Ctrl-v, and then press Enter)
+   or  dos2unix unix2dos
+
+• 删除行尾空格remove trailing whitespace in vi : %s/\s\+$//g  Dos格式: %s/\s\+\r//g
+• 替换Tab为空格: %s/\t/  /g
+• TAB替换为空格： 
+  :set ts=4
+  :set expandtab
+  :%retab!
+
+### iso install
+press 'e' 进入，加上参数acpi=force pci=pcie_bus_perf cma=288M crashkernel=256M@32M console=ttyAMA0,115200 earlycon=pl011,mmio,0x602B0000
+press ctrl+x退出
+
+### PXE
+按E进入编辑界面
+按Ctrl+x退出
+
+### grub 配置修改
+vi /etc/default/grub
+加上参数acpi=force earlycon=pl011,mmio,0x602B0000
+增加一行GRUB_TERMINAL="gfxterm console"
+:x保存退出
+
+update-grub
+没有报错的话，会显示done
+
+### BMC
+ipmcset -d fanlevel -v 1 0
+ipmcset -d fanlevel -v 20
+ipmcset -d ipaddr -v 192.168.2.105 255.255.255.0
+ipmcget -d ipinfo
+
+ipmitool -I lanplus -H 192.168.1.55 -U Administrator -P Admin@9000 power off
+ipmitool -I lanplus -H 192.168.1.55 -U Administrator -P Admin@9000 power on
+ipmitool -I lanplus -H 192.168.1.55 -U Administrator -P Admin@9000 power reset
+ipmitool -I lanplus -H 192.168.2.178 -U root -P Huawei12#$ sol deactivate
+ipmitool -I lanplus -H 192.168.2.178 -U root -P Huawei12#$ sol activate
+ipmitool -I lanplus -H 192.168.1.55 -U Administrator -P Admin@9000 sol deactivate
+ipmitool -I lanplus -H 192.168.1.55 -U Administrator -P Admin@9000 sol activate
+
+ipmitool -I lanplus -H 192.168.1.164 -U root -P Huawei12#$ hpm upgrade UEFI_D0520171129.hpm #failed
+scp UEFI_D0520171129.hpm root@192.168.1.164:/tmp/
+ipmcset -d upgrade -v /tmp/UEFI_D0520171129.hpm
+#ibm
+ipmitool -I lanplus -U <username> -P <password> -H <bmc ip or bmc hostname> hpm upgrade <xxxxx.hpm> -z 25000 force
+# 设置单板下次从cdrom启动
+1.设置单板下次从cdrom启动
+$ sshpass -p '<BMC PSWD>' ssh <BMC USER>@<BMC IP> ipmcset -d bootdevice -v 5 once
+或
+$ ipmitool -H <BMC IP> -I lanplus -U <BMC USER> -P <BMC PSWD> chassis bootdev cdrom
+2.将iso通过vmm以模拟光驱的方式挂载：
+$ sshpass -p '<BMC PSWD>' ssh <BMC USER>@<BMC IP> ipmcset -t vmm -d connect -v nfs://<NFC IP(can connect with BMCIP)>/<nfs server path>/<iso NAME>.iso
+3.重启或开机
+$ipmitool -H <BMC IP> -I lanplus -U <BMC USER> -P <BMC PSWD> power reset/on
+4.可以通过sol查看自动安装过程，全程无需交互
+$ipmitool -H <BMC IP> -I lanplus -U <BMC USER> -P <BMC PSWD> sol activate
+5.安装完后，解除虚拟光驱的挂载
+$ sshpass -p '<BMC PSWD>' ssh <BMC USER>@<BMC IP> ipmcset -t vmm -d disconnect
+
+example:
+timeout 120 sshpass -p 'Huawei12#$' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@192.168.2.178 ipmcset -t vmm -d disconnect
+
+timeout 360 sshpass -p 'Huawei12#$' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+root@192.168.2.178 ipmcset -t vmm -d connect -v nfs://192.168.2.49/var/lib/lava/dispatcher/tmp/iso_install/arm64/estuary/daily_20180806/fedora/d05/auto-install.iso
+
+ipmitool -H 192.168.2.178 -I lanplus -U root -P Huawei12#$ chassis bootdev cdrom
+ipmitool -H 192.168.2.178 -I lanplus -U root -P Huawei12#$ power reset
+ipmitool -H 192.168.2.178 -I lanplus -U root -P Huawei12#$ sol deactivate
+ipmitool -H 192.168.2.178 -I lanplus -U root -P Huawei12#$ sol activate usesolkeepalive
+
+### uefi
+DriverBinding->Start 加打印 MdeModulePkg/Core/Dxe/Hand/DriverSupport.c
+InstallProtocolInterface 加打印 MdeModulePkg/Core/Dxe/Hand/Handle.c
+
+### Windows
+arp -a #看ip和Mac的对应关系
+
+#
+heyi 蓝云g00179230 Bios17b#
+
+# English:
+http://lang-8.com/#
+
+###下载estuary code
+repo init -u "https://github.com/open-estuary/estuary.git" -b refs/tags/estuary-v2.3 --no-repo-verify --repo-url=git://android.git.linaro.org/tools/repo
+repo init -u "https://github.com/open-estuary/estuary.git" -b refs/tags/v3.0-rc0-pretest1 --no-repo-verify --repo-url=git://android.git.linaro.org/tools/repo
+repo init -u "https://github.com/open-estuary/estuary.git" -b estuary-d05-3.0b --no-repo-verify --repo-url=git://android.git.linaro.org/tools/repo
+repo init -u "https://github.com/open-estuary/estuary.git" -b master --no-repo-verify --repo-url=git://android.git.linaro.org/tools/repo
+false; while [ $? -ne 0 ]; do repo sync; done
+
+https://github.com/open-estuary/uefi/estuary #binary, for estuary 5.0
+open-estuary:https://github.com/open-estuary/uefi
+OPP: https://git.linaro.org/people/heyi.guo/OpenPlatformPkg.git
+
+------------directory in txt sample --------------------
+/edk2-platforms/
+├── Platform
+│   └── Hisilicon
+│       ├── D06
+│       │   ├── D06.dsc               # Platform Description File
+│       │   └── D06.fdf               # Flash Description File
+│       ├── D05
+│       └── D03
+└── Silicon
+    └── Hisilicon
+        ├── Drivers                   # Hisilicon commond drivers
+        ├── Hi1610
+        ├── Hi1616
+        ├── Hi1620
+        │   ├── Drivers               # Hi1620 drivers
+        │   ├── Hi1620AcpiTables      # Hi1620 Acpi table
+        │   ├── Hi1620OemConfigUiLib  # Setup Oem Config menu
+        │   ├── Include
+        │   └── Library
+        ├── Include                   # Hisilicon commond header files
+        └── Library                   # Hisilicon commond libraries
+
+/edk2-non-osi/
+├── Platform
+│   └── Hisilicon
+│       ├── D06
+│       │   ├── Drivers
+│       │   ├── Library
+│       │   ├── MemoryInitPei
+│       │   ├── Sec
+│       │   └── bl1.bin/fip.bin       # Trusted Firmware
+│       ├── D05
+│       ├── D03
+│       └── Drivers                   # Hisilicon commond drivers
+└── Silicon
+    └── Hisilicon
+        ├── Hi1610
+        ├── Hi1616
+        ├── Hi1620
+        │   └── Library
+        ├── Include
+        └── Library
+
+
+/boot/
+├── EFI
+│   ├── arch
+│   │   ├── fw
+│   │   └── fwupx64.efi
+│   ├── BOOT
+│   │   └── BOOTX64.EFI
+│   ├── Dell
+│   │   ├── Bios
+│   │   │   └── Recovery
+│   │   │       ├── BIOS_CUR.RCV
+│   │   │       └── BIOS_PRE.rcv
+│   │   └── logs
+│   │       ├── diags_current.xml
+│   │       └── diags_previous.xml
+│   ├── EFI
+│   │   └── arch
+│   │       ├── fw
+│   │       └── fwupx64.efi
+│   └── systemd
+│       └── systemd-bootx64.efi
+├── initramfs-linux-fallback.img
+├── initramfs-linux.img
+├── intel-ucode.img
+├── loader
+│   ├── entries
+│   │   └── arch.conf
+│   └── loader.conf
+└── vmlinuz-linux
